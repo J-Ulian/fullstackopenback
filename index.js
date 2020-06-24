@@ -1,63 +1,92 @@
 const express = require("express");
 const app = express();
 
-let persons = [
-  {
-    name: "Arto Hellas",
-    number: "040-123456",
-    id: 1,
-  },
-  {
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-    id: 2,
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: 3,
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-    id: 4,
-  },
+app.use(express.json());
+
+const generateId = () => {
+    return Math.floor(Math.random() * 10000);
+};
+
+let persons = [{
+        name: "Arto Hellas",
+        number: "040-123456",
+        id: 1,
+    },
+    {
+        name: "Ada Lovelace",
+        number: "39-44-5323523",
+        id: 2,
+    },
+    {
+        name: "Dan Abramov",
+        number: "12-43-234345",
+        id: 3,
+    },
+    {
+        name: "Mary Poppendieck",
+        number: "39-23-6423122",
+        id: 4,
+    },
 ];
 
 app.get("/", (req, res) => {
-  console.log(Date());
-  res.send("<h1>Hello World!</h1>");
+    console.log(Date());
+    res.send("<h1>Hello World!</h1>");
 });
 
 app.get("/info", (req, res) => {
-  res.send(
-    `<div><p>Phonebook has info for ${
+    res.send(
+        `<div><p>Phonebook has info for ${
       persons.length
     } people<p/><p>${Date()}</p></div>`
-  );
+    );
 });
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+    res.json(persons);
 });
 
 app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find(function (p) {
-    //console.log(p.id, typeof p.id, id, typeof id, p.id === id);
-    return p.id === id;
-  });
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+    const id = Number(req.params.id);
+    const person = persons.find(function (p) {
+        //console.log(p.id, typeof p.id, id, typeof id, p.id === id);
+        return p.id === id;
+    });
+    if (person) {
+        res.json(person);
+    } else {
+        res.status(404).end();
+    }
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((p) => p.id !== id);
-  response.status(204).end();
+    const id = Number(request.params.id);
+    persons = persons.filter((p) => p.id !== id);
+    response.status(204).end();
+});
+
+app.post("/api/persons", (request, response) => {
+    const body = request.body;
+    if (!body.name) {
+        return response.status(400).json({
+            error: "name is missing",
+        });
+    } else if (!body.number) {
+        return response.status(400).json({
+            error: "number is missing",
+        });
+    } else if (persons.map(p => p.name).indexOf(body.name) >= 0) {
+        return response.status(400).json({
+            error: "name must be unique",
+        });
+    }
+    const person = {
+        name: body.name,
+        number: body.number,
+        id: generateId()
+    }
+    persons = persons.concat(person);
+    response.json(person)
 });
 
 const port = 3001;
