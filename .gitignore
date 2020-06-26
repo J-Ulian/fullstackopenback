@@ -8,7 +8,7 @@
 /coverage
 
 # production
-
+mongo.js
 
 # misc
 .DS_Store
@@ -17,7 +17,6 @@
 .env.test.local
 .env.production.local
 .env
-.mongo.js
 
 npm-debug.log*
 yarn-debug.log*
