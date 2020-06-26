@@ -20,11 +20,12 @@ const requestLogger = (request, response, next) => {
 
 const app = express();
 
-app.use(cors());
+app.use(express.static('build'))
 app.use(express.json());
+app.use(cors());
 app.use(requestLogger);
 app.use(morgan("tiny"));
-app.use(express.static('build'))
+
 
 
 
@@ -72,7 +73,7 @@ app.get("/api/persons", (request, response) => {
   })
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   // const id = Number(req.params.id);
   //const person = persons.find(function (p) {
   //   //console.log(p.id, typeof p.id, id, typeof id, p.id === id);
@@ -86,12 +87,7 @@ app.get("/api/persons/:id", (request, response) => {
         response.status(404).end()
       }
     })
-    .catch(error => {
-      console.log(error)
-      response.status(400).send({
-        error: 'malformatted id'
-      })
-    })
+    .catch(error => next(error))
 
 });
 
@@ -137,6 +133,19 @@ const unknownEndpoint = (request, response) => {
 };
 
 app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message)
+
+  if (error.name === "CastError") {
+    return response.status(400).send({
+      error: "malformatted id"
+    })
+  }
+
+  next(error)
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
