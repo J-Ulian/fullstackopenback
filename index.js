@@ -1,8 +1,9 @@
 const express = require("express");
 const morgan = require("morgan");
-const app = express();
+const cors = require("cors");
 
 const requestLogger = (request, response, next) => {
+  console.log("---");
   console.log("Method:", request.method);
   console.log("Path:  ", request.path);
   console.log("Body:  ", request.body);
@@ -10,16 +11,18 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
+const app = express();
+
+app.use(cors());
 app.use(express.json());
-//app.use(requestLogger)
+app.use(requestLogger);
 app.use(morgan("tiny"));
 
 const generateId = () => {
   return Math.floor(Math.random() * 10000);
 };
 
-let persons = [
-  {
+let persons = [{
     name: "Arto Hellas",
     number: "040-123456",
     id: 1,
@@ -108,6 +111,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint);
 
-const port = 3001;
-app.listen(port);
-console.log(`Server running on port ${port}`);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+});
