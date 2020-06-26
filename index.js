@@ -56,15 +56,20 @@ let persons = [{
 ];
 
 app.get("/", (req, res) => {
+
   res.send("<h1>Hello World!</h1>");
 });
 
 app.get("/info", (req, res) => {
-  res.send(
-    `<div><p>Phonebook has info for ${
-      persons.length
-    } people<p/><p>${Date()}</p></div>`
-  );
+  Person.find().count(function (err, count) {
+    res.send(
+      `<div><p>Phonebook has info for ${
+        count
+      } people<p/><p>${Date()}</p></div>`
+    );
+  });
+
+
 });
 
 app.get("/api/persons", (request, response) => {
@@ -125,6 +130,24 @@ app.post("/api/persons", (request, response) => {
     response.json(savedPerson.toJSON())
   })
 });
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  const person = {
+    content: body.content,
+    important: body.important,
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, {
+      new: true
+    })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({
