@@ -1,6 +1,10 @@
+require('dotenv').config()
+
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const Person = require('./models/person')
+
 
 const requestLogger = (request, response, next) => {
   console.log("---");
@@ -18,6 +22,8 @@ app.use(express.json());
 app.use(requestLogger);
 app.use(morgan("tiny"));
 app.use(express.static('build'))
+
+
 
 const generateId = () => {
   return Math.floor(Math.random() * 10000);
@@ -57,21 +63,22 @@ app.get("/info", (req, res) => {
   );
 });
 
-app.get("/api/persons", (req, res) => {
-  res.json(persons);
+app.get("/api/persons", (request, response) => {
+  Person.find({}).then(persons => {
+    response.json(persons)
+  })
 });
 
 app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find(function (p) {
-    //console.log(p.id, typeof p.id, id, typeof id, p.id === id);
-    return p.id === id;
-  });
-  if (person) {
+  // const id = Number(req.params.id);
+  //const person = persons.find(function (p) {
+  //   //console.log(p.id, typeof p.id, id, typeof id, p.id === id);
+  // return p.id === id;
+  // });
+  Person.findById(req.params.id).then(person => {
     res.json(person);
-  } else {
-    res.status(404).end();
-  }
+  })
+
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -90,18 +97,16 @@ app.post("/api/persons", (request, response) => {
     return response.status(400).json({
       error: "number is missing",
     });
-  } else if (persons.map((p) => p.name).indexOf(body.name) >= 0) {
-    return response.status(400).json({
-      error: "name must be unique",
-    });
   }
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: generateId(),
-  };
-  persons = persons.concat(person);
-  response.json(person);
+    // id: generateId(),
+  });
+  //persons = persons.concat(person);
+  person.save().then(savedPerson => {
+    response.json(savedPerson.toJSON())
+  })
 });
 
 const unknownEndpoint = (request, response) => {
@@ -112,7 +117,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 });
