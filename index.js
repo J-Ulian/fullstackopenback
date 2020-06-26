@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 app.use(morgan("tiny"));
+app.use(express.static('build'))
 
 const generateId = () => {
   return Math.floor(Math.random() * 10000);
